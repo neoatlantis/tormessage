@@ -1,0 +1,24 @@
+{
+  "name": "Tormessage",
+  "version": "0.0.1",
+  "description": "Peer to peer messaging behind tor network.",
+  "main": "index.js",
+  "scripts": {
+    "test": "~/.atom-shell/atom . -debug"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neoatlantis/tormessage.git"
+  },
+  "keywords": [
+    "p2p",
+    "message",
+    "tor"
+  ],
+  "author": "NeoAtlantis",
+  "license": "GPLv3",
+  "bugs": {
+    "url": "https://github.com/neoatlantis/tormessage/issues"
+  },
+  "homepage": "https://github.com/neoatlantis/tormessage"
+}
