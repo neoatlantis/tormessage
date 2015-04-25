@@ -24,7 +24,8 @@ function getHTTPCallback(handler){
             };
             e.data = querystring.parse(data);
             e.url = url.parse(req.url);
-
+            e.headers = req.headers;
+            console.log(e);
             handler(e);
         };
 
@@ -33,19 +34,34 @@ function getHTTPCallback(handler){
     };
 };
 
-function getUtil(express){
-    var ret = {};
+function getUtil(moduleName, components){
+    var app = components.app;
+    var fs = require('fs');
 
-    ret.api = function(path, handler){
-        express.post(path, getHTTPCallback(handler));
+    var ret = {user: {}, net: {}};
+
+    // -------- `api` and `page` will be exposed to the internet(or Tor
+    //          network).
+
+    ret.net.api = function(path, handler){
+        path = '/' + moduleName + path;
+        app.post(path, getHTTPCallback(handler));
     };
 
-    ret.page = function(path, filename){
-        express.get(path, function(req, res){
-            // TODO a static file server here
-            res.end('hello, not done')
+    ret.net.page = function(path, filename){
+        path = '/' + moduleName + path;
+        app.get(path, function(req, res){
+            var fn = 'modules/' + moduleName + '/static.net/' + filename;
+            fs.readFile(fn, function(err, data){
+                if(err) return res.end('Page could not be served.');
+                res.end(data);
+            });
         });
     };
+
+    // -------- `api` and `page` reserved for the user interface. `api`
+    //          will be called using IPC, and `page` will be loaded using
+    //          a special ipc call.
 
 
     return ret;
@@ -53,7 +69,6 @@ function getUtil(express){
 
 //////////////////////////////////////////////////////////////////////////////
 module.exports = function(e){
-    var util = getUtil(e.express);
-
-    for(var i in list) require('../modules/' + list[i] + '/index.js')(util);
+    for(var i in list) 
+        require('../modules/' + list[i] + '/index.js')(getUtil(list[i], e));
 };

@@ -1,7 +1,7 @@
 module.exports = function(e){ 
 
-e.page('/sms', 'sms.html');
-e.api('/sms', function(e){
+e.net.page('/', 'sms.html');
+e.net.api('/', function(e){
 //////////////////////////////////////////////////////////////////////////////
 
 e.response(200, 'hello');

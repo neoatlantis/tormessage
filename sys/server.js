@@ -1,7 +1,7 @@
 module.exports = function(argv){
 //////////////////////////////////////////////////////////////////////////////
 
-var server = argv.express.listen(argv.config.port, function(){
+var server = argv.app.listen(argv.config.port, function(){
 
     
     

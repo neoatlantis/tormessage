@@ -1,13 +1,10 @@
-var express = require('express')();
+var argv = {};
+argv.config = require('./sys/config.js')();
+argv.express = require('express');
+argv.app = argv.express();
 
 
+var firewall = require('./sys/firewall.js')(argv);
 
-
-var config = require('./sys/config.js')(),
-    server = require('./sys/server.js')({config: config, express: express});
-
-
-var modules = require('./sys/moduleLoader.js')({
-    config: config,
-    express: express,
-});
+var server = require('./sys/server.js')(argv);
+var modules = require('./sys/moduleLoader.js')(argv);
