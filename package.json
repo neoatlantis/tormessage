@@ -20,5 +20,12 @@
   "bugs": {
     "url": "https://github.com/neoatlantis/tormessage/issues"
   },
-  "homepage": "https://github.com/neoatlantis/tormessage"
+  "homepage": "https://github.com/neoatlantis/tormessage",
+  "dependencies": {
+    "express": "^4.12.3",
+    "node-localstorage": "^0.5.0"
+  },
+  "devDependencies": {
+    "electron-prebuilt": "^0.24.0"
+  }
 }
