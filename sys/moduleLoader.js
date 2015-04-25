@@ -1,5 +1,6 @@
 var list = [
     'sms',
+    'admin',
 ];
 //////////////////////////////////////////////////////////////////////////////
 
@@ -25,7 +26,6 @@ function getHTTPCallback(handler){
             e.data = querystring.parse(data);
             e.url = url.parse(req.url);
             e.headers = req.headers;
-            console.log(e);
             handler(e);
         };
 
@@ -38,7 +38,7 @@ function getUtil(moduleName, components){
     var app = components.app;
     var fs = require('fs');
 
-    var ret = {user: {}, net: {}};
+    var ret = {user: {}, net: {}, events: components.events};
 
     // -------- `api` and `page` will be exposed to the internet(or Tor
     //          network).

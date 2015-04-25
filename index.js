@@ -1,5 +1,6 @@
 var argv = {};
 argv.config = require('./sys/config.js')();
+argv.events = require('./sys/eventCenter.js')();
 argv.express = require('express');
 argv.app = argv.express();
 
