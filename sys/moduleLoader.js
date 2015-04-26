@@ -12,6 +12,8 @@ function getHTTPCallback(handler){
         var querystring = require('querystring'),
             url = require('url');
 
+        res.setHeader('X-Tor-Message', '1'); // identity this service
+
         e.response = function(code, string){
             if(respSent) return;
             res.writeHead(code);
@@ -44,12 +46,12 @@ function getUtil(moduleName, components){
     //          network).
 
     ret.net.api = function(path, handler){
-        path = '/' + moduleName + path;
+        path = '/~tormsg/' + moduleName + path;
         app.post(path, getHTTPCallback(handler));
     };
 
     ret.net.page = function(path, filename){
-        path = '/' + moduleName + path;
+        path = '/~tormsg/' + moduleName + path;
         app.get(path, function(req, res){
             var fn = 'modules/' + moduleName + '/static.net/' + filename;
             fs.readFile(fn, function(err, data){
