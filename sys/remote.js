@@ -11,8 +11,14 @@ function curl(url, opt, callback){
     // set verbose output
     argv.push('-v');
     // set http header for identifying ourselves
-    argv.push('--header');
-    if(opt.IDENTIFIER) argv.push('X-Tor-Message: ' + opt.IDENTIFIER);
+    if(opt.IDENTIFIER){
+        argv.push('--header');
+        argv.push('X-Tor-Message: ' + opt.IDENTIFIER);
+    };
+    if(opt.PUBLICKEY){
+        argv.push('--header');
+        argv.push('X-Tor-Message-Key: ' + opt.PUBLICKEY);
+    };
     // set proxy
     argv.push('--proxy');
     argv.push('socks5h://' + opt.PROXY + ':' + opt.PROXYPORT);
@@ -70,6 +76,7 @@ module.exports = function(e){
         opt.URL = getURL(dest, path);
         opt.TIMEOUT = 20;
         opt.IDENTIFIER = e.identity.getLocalID();
+        opt.PUBLICKEY = e.identity.getLocalPublicKey();
 
         // config proxy use
         if('.onion' == dest.substr(-6)){
@@ -129,6 +136,11 @@ module.exports = function(e){
             data.body = result.body;
             data.statusCode = statusCode;
             data.headers = result.headers;
+            try{
+                data.bodyJSON = JSON.parse(data.body);
+            } catch(e){
+                data.bodyJSON = null;
+            };
             return callback(null, data);
         };
         curl(url, opt, curlCallback); // start initial attempt.

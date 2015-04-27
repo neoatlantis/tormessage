@@ -17,7 +17,6 @@ module.exports = function(){ return {
     "modules": {
         "sms": {
             "message-length-limit": 1024,
-            "identifier-length-limit": 32,
         },
     },
 //////////////////////////////////////////////////////////////////////////////

@@ -11,11 +11,22 @@ function getHTTPCallback(handler, components){
 
         // identity this service
         res.setHeader('X-Tor-Message', components.identity.getLocalID());
+        res.setHeader(
+            'X-Tor-Message-Key',
+            components.identity.getLocalPublicKey()
+        );
 
         e.response = function(code, string){
             if(respSent) return;
             res.writeHead(code);
-            res.end(string);
+            if(string){
+                if(!util.type(string).isString())
+                    string = JSON.stringify(string);
+                res.end(string);
+            } else {
+                res.end();
+            };
+            respSent = true;
         };
 
         function work(){
@@ -26,7 +37,8 @@ function getHTTPCallback(handler, components){
             e.data = querystring.parse(data);
             e.url = url.parse(req.url);
             e.headers = req.headers;
-            e.identifier = req.headers["X-Tor-Message"];
+            e.identifier = req.headers["X-Tor-Message".toLowerCase()];
+            e.publicKey = req.headers["X-Tor-Message-Key".toLowerCase()];
             handler(e);
         };
 
@@ -45,6 +57,7 @@ function getUtil(moduleName, components){
         events: components.events,
         config: {},
         util: util,
+        identity: components.identity,
     };
 
     // -------- set config parameters for this module
@@ -65,14 +78,19 @@ function getUtil(moduleName, components){
         app.post(path, getHTTPCallback(handler, components));
     };
 
-    ret.net.page = function(path, filename){
+    ret.net.page = function(path, src){
         path = '/~tormsg/' + moduleName + path;
         app.get(path, function(req, res){
-            var fn = 'modules/' + moduleName + '/static.net/' + filename;
-            fs.readFile(fn, function(err, data){
+            var onPageGenerated = function(err, data){
                 if(err) return res.end('Page could not be served.');
                 res.end(data);
-            });
+            };
+            if(util.type(src).isString()){
+                var fn = 'modules/' + moduleName + '/static.net/' + src;
+                fs.readFile(fn, onPageGenerated);
+            } else {
+                src(onPageGenerated);
+            };
         });
     };
 

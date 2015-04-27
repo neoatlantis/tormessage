@@ -14,7 +14,7 @@ module.exports = function(e){
     e.net.api('/', function(res){
         var data = res.data;
 
-        var message = data.message, identifier = data.identifier;
+        var message = data.message, identifier = res.identifier;
         if(!(
             e.util.type(message).isString() &&
             e.util.type(identifier).isString()
@@ -22,11 +22,7 @@ module.exports = function(e){
             return res.response(400);
         };
 
-        if(
-            message.length > e.config["message-length-limit"] ||
-            identifier.length > e.config["identifier-length-limit"]
-
-        ){
+        if( message.length > e.config["message-length-limit"] ){
             return res.response(413); // POSTed too long
         };
 

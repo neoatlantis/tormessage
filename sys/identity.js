@@ -13,10 +13,18 @@ function IdentityManager(e){
         overrideSecret: secret,
     });
     localFingerprintStr = localIdentity.getFingerprint(true);
+    localPublicKeyStr = crypto.util.encoding(
+        localIdentity.exportPublic()
+    ).toBase64();
 
     this.getLocalID = function(){
-        // returns the local identity'sfingerprint.
+        // returns the local identity's fingerprint.
         return localFingerprintStr;
+    };
+
+    this.getLocalPublicKey = function(){
+        // returns the local identity's public key.
+        return localPublicKeyStr;
     };
 
     console.log('Local Identity: [' + localFingerprintStr + '].');
