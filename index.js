@@ -1,3 +1,6 @@
+console.log('------------------------------');
+
+
 var argv = {};
 argv.config = require('./sys/config.js')();
 argv.events = require('./sys/eventCenter.js')();
