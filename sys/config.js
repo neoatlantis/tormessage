@@ -1,6 +1,7 @@
 module.exports = function(){ return {
 //////////////////////////////////////////////////////////////////////////////
     "port": 9393,
+    "private-key": "Change this and keep this configuration file secure!",
     "darknet": {
         "tor": {
             "ip": "127.0.0.1",
@@ -15,6 +16,8 @@ module.exports = function(){ return {
     },
     "modules": {
         "sms": {
+            "message-length-limit": 1024,
+            "identifier-length-limit": 32,
         },
     },
 //////////////////////////////////////////////////////////////////////////////

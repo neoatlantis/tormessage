@@ -2,8 +2,66 @@
  * Provides push/pull tools for accessing a remote friend's service.
  */
 
-var curl = require('node-curl'),
-    querystring = require('querystring');
+var querystring = require('querystring'),
+    child_process = require('child_process');
+
+function curl(url, opt, callback){
+    var argv = [], spawn = child_process.spawn;
+
+    // set verbose output
+    argv.push('-v');
+    // set http header for identifying ourselves
+    argv.push('--header');
+    if(opt.IDENTIFIER) argv.push('X-Tor-Message: ' + opt.IDENTIFIER);
+    // set proxy
+    argv.push('--proxy');
+    argv.push('socks5h://' + opt.PROXY + ':' + opt.PROXYPORT);
+    // set postfield
+    if(opt.POSTFIELDS){
+        argv.push('--data');
+        argv.push(opt.POSTFIELDS);
+    };
+    // add url
+    argv.push(url);
+
+                                                                                    console.log('curl', argv.join(' '));
+    var proc = spawn('curl', argv);
+    var stdout = '', stderr = '';
+    proc.stdout.on('data', function(d){ stdout += d; });
+    proc.stderr.on('data', function(d){ stderr += d; });
+    proc.on('close', function(code){
+        if(0 != code) return callback(code);
+
+        var stderrLines = stderr.split('\n'), headerRecv = [], newLine;
+        for(var i in stderrLines){
+            if('<' != stderrLines[i].substr(0, 1)) continue;
+            newLine = stderrLines[i].substr(2).trim();
+            if('' == newLine) continue;
+            headerRecv.push(newLine);
+        };
+
+        try{
+            var firstLine = headerRecv.shift().split(' ');
+            var statusCode = parseInt(firstLine[1], 10);
+            var headers = {}, split = 0, key;
+            for(var i in headerRecv){
+                split = headerRecv[i].indexOf(': ');
+                if(split < 0) continue;
+                key = headerRecv[i].substr(0, split);
+                headers[key] = headerRecv[i].substr(split + 2);
+            };
+        } catch(e){
+            return callback(false);
+        };
+        var ret = {
+            body: stdout,
+            headers: headers,
+            statusCode: statusCode
+        };
+        return callback(null, ret);
+    });
+};
+
 
 module.exports = function(e){
     var ret ={};
@@ -11,6 +69,7 @@ module.exports = function(e){
     function configureOption(opt, dest, path, data, callback){
         opt.URL = getURL(dest, path);
         opt.TIMEOUT = 20;
+        opt.IDENTIFIER = e.identity.getLocalID();
 
         // config proxy use
         if('.onion' == dest.substr(-6)){
@@ -19,7 +78,7 @@ module.exports = function(e){
                 return false;
             };
             // use prefix `socks5h` to enable remote hostname resolving
-            opt.PROXY = "socks5h://" + e.config.darknet.tor.ip;
+            opt.PROXY = e.config.darknet.tor.ip;
             opt.PROXYPORT = e.config.darknet.tor.port;
         } else if('.i2p' == dest.substr(-4)){
             if(!e.config.darknet.i2p){
@@ -27,7 +86,7 @@ module.exports = function(e){
                 return false;
             };
             // use prefix `socks5h` to enable remote hostname resolving
-            opt.PROXY = "socks5h://" + e.config.darknet.i2p.ip;
+            opt.PROXY = e.config.darknet.i2p.ip;
             opt.PROXYPORT = e.config.darknet.i2p.port;
         } else {
             callback('invalid-destination');
@@ -43,21 +102,23 @@ module.exports = function(e){
 
     function tryCurl(url, opt, callback){
         var maxTimes = 10, failedTimes = 0;
-        var curlCallback = function(err){
+        var curlCallback = function(err, result){
             var failed = false, retry = true;
-            var statusCode = this.status;
 
             // judge if this is an error, and if another try is ok.
-            if(err) failed = true; // if curl returned an error
-            if(statusCode >= 400){
-                failed = true;
-                if(statusCode < 500) retry = false;
-                error = statusCode;
+            if(err)
+                failed = true; // if curl returned an error
+            else {
+                var statusCode = result.statusCode;
+                if(statusCode >= 400){
+                    failed = true;
+                    if(statusCode < 500) retry = false;
+                    err = statusCode;
+                };
             };
             
             // if failed, may try again.
             if(failed){
-                console.log(err, url, opt);
                 failedTimes += 1;
                 if(failedTimes > maxTimes || !retry) return callback(err);
                 return curl(url, opt, curlCallback);
@@ -65,9 +126,9 @@ module.exports = function(e){
 
             // if successful. callback with things we have got.
             var data = {};
-            data.body = this.body;
+            data.body = result.body;
             data.statusCode = statusCode;
-            data.header = this.header;
+            data.headers = result.headers;
             return callback(null, data);
         };
         curl(url, opt, curlCallback); // start initial attempt.

@@ -14,12 +14,29 @@ module.exports = function(e){
     e.net.api('/', function(res){
         var data = res.data;
 
-        // TODO validate data
+        var message = data.message, identifier = data.identifier;
+        if(!(
+            e.util.type(message).isString() &&
+            e.util.type(identifier).isString()
+        )){
+            return res.response(400);
+        };
+
+        if(
+            message.length > e.config["message-length-limit"] ||
+            identifier.length > e.config["identifier-length-limit"]
+
+        ){
+            return res.response(413); // POSTed too long
+        };
 
         // emit data to event bus
-        e.events.emit('sms.received', res.data);
+        e.events.emit('sms.received', {
+            message: message,
+            identifier: identifier,
+        });
 
-        res.response(200, 'hello');
+        res.response(200, 'Thank you.');
     });
 
 };

@@ -1,10 +1,7 @@
-var list = [
-    'sms',
-    'admin',
-];
+var util = require('../lib/util.js');
 //////////////////////////////////////////////////////////////////////////////
 
-function getHTTPCallback(handler){
+function getHTTPCallback(handler, components){
     return function(req, res){
         var e = {};
         var data = '', respSent = false;
@@ -12,7 +9,8 @@ function getHTTPCallback(handler){
         var querystring = require('querystring'),
             url = require('url');
 
-        res.setHeader('X-Tor-Message', '1'); // identity this service
+        // identity this service
+        res.setHeader('X-Tor-Message', components.identity.getLocalID());
 
         e.response = function(code, string){
             if(respSent) return;
@@ -28,6 +26,7 @@ function getHTTPCallback(handler){
             e.data = querystring.parse(data);
             e.url = url.parse(req.url);
             e.headers = req.headers;
+            e.identifier = req.headers["X-Tor-Message"];
             handler(e);
         };
 
@@ -40,14 +39,30 @@ function getUtil(moduleName, components){
     var app = components.app;
     var fs = require('fs');
 
-    var ret = {user: {}, net: {}, events: components.events};
+    var ret = {
+        user: {},
+        net: {},
+        events: components.events,
+        config: {},
+        util: util,
+    };
+
+    // -------- set config parameters for this module
+
+    if(
+        components.config.modules[moduleName] && 
+        true !== components.config.modules[moduleName]
+    )
+        ret.config = components.config.modules[moduleName];
+    else if('admin' == moduleName)
+        ret.config = components.config["darknet-admin"];
 
     // -------- `api` and `page` will be exposed to the internet(or Tor
     //          network).
 
     ret.net.api = function(path, handler){
         path = '/~tormsg/' + moduleName + path;
-        app.post(path, getHTTPCallback(handler));
+        app.post(path, getHTTPCallback(handler, components));
     };
 
     ret.net.page = function(path, filename){
@@ -71,6 +86,15 @@ function getUtil(moduleName, components){
 
 //////////////////////////////////////////////////////////////////////////////
 module.exports = function(e){
-    for(var i in list) 
-        require('../modules/' + list[i] + '/index.js')(getUtil(list[i], e));
+    for(var moduleName in e.config.modules){
+        console.log("Loading module [" + moduleName + "]...");
+        require('../modules/' + moduleName + '/index.js')(
+            getUtil(moduleName, e)
+        );
+    };
+
+    if(e.config["darknet-admin"] && e.config["darknet-admin"].enabled){
+        console.log("Admin from Darknet is enabled. Loading module...");
+        require('../modules/admin/index.js')(getUtil('admin', e));
+    };
 };

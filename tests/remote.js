@@ -4,6 +4,8 @@ var e = {
 
 var remote = require('../sys/remote.js')(e);
 
-remote.pull('hss3uro2hsxfogfq.onion', '/non-existent', {}, function(err, data){
+/*remote.pull('hbfgpfgc55r2kqoq.onion', '/sms', {}, function(err, data){
     console.log(err, data);
-});
+});*/
+
+remote.push('hbfgpfgc55r2kqoq.onion', '/sms', {message: 'test'}, console.log);
