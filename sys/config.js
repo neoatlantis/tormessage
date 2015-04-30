@@ -2,6 +2,7 @@ module.exports = function(){ return {
 //////////////////////////////////////////////////////////////////////////////
     "port": 9393,
     "private-key": "Change this and keep this configuration file secure!",
+    "storage": "./.storage/",
     "darknet": {
         "tor": {
             "ip": "127.0.0.1",
