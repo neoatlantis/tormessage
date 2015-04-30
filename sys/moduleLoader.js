@@ -99,6 +99,35 @@ function getUtil(moduleName, components){
     //          will be called using IPC, and `page` will be loaded using
     //          a special ipc call.
 
+    ret.user.api = function(ipcName, callback){
+        // answers IPC call using callback's return value
+        ipc.on(ipcName, function(e, arg){
+            callback(arg);
+        });
+    };
+    
+    var pageRegister = {};
+    ret.user.page = function(pageName, src){
+        // multifunctional definition.
+        // if src is specified, a new register will be recorded for given
+        // pageName. otherwise, the browser window will be switched to
+        // specified name.
+        if(undefined !== src){
+            pageRegister[pageName] = src;
+            return;
+        } else {
+            components.window.loadUrl(
+                'file://' +
+                __dirname + 
+                '/modules/' + 
+                moduleName + 
+                '/static.user/' + 
+                pageRegister[pageName]
+            );
+            return;
+        };
+    };
+
 
     return ret;
 };
