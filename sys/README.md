@@ -19,4 +19,5 @@ consists of:
    center.
 4. `e.config`, extract of the configuration in the config file for this module.
 5. `e.identity`, the public key based identity management center.
-6. `e.util`, utlities for some tasks.
+6. `e.storage`, the storage system.
+7. `e.util`, utlities for some tasks.

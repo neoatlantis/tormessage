@@ -20,6 +20,7 @@ function storage(e){
         if(!testFilename(key)) return callback('Storage key invalid.');
         var filename = getPath(key),
             filedata = new buffer.Buffer(JSON.stringify(data), 'utf-8');
+        console.log("Storage save: " + filename);
         fs.writeFile(filename, filedata, callback);
         callback(null);
     };

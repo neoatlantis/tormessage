@@ -58,6 +58,7 @@ function getUtil(moduleName, components){
         config: {},
         util: util,
         identity: components.identity,
+        storage: components.storage,
     };
 
     // -------- set config parameters for this module
